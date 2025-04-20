@@ -1,0 +1,27 @@
+`include "constants.vams"   // Include physical constants (e.g., `P_K`, `P_Q`, etc.)
+`include "discipline.h"     // Include electrical discipline definitions
+
+// Module definition for a simple NPN BJT model
+module npn_bjt(c, b, e);
+    inout c, b, e;           // Define collector (c), base (b), emitter (e) as bidirectional ports
+    electrical c, b, e;      // Declare the ports as electrical nodes
+
+    // Device parameters
+    parameter real Is    = 1e-16 from (0:inf);   // Saturation current (A)
+    parameter real betaF = 100   from (1:inf);   // Forward current gain (βF)
+    parameter real Vt    = 0.0259;               // Thermal voltage at room temperature (V)
+
+    analog begin
+        // Compute and assign collector current using the exponential diode equation
+        // I_C = Is * (exp(V_BE / Vt) - 1)
+        I(c) <+ Is * (exp(V(b, e) / Vt) - 1);
+
+        // Base current derived from collector current and forward current gain
+        // I_B = I_C / βF
+        I(b) <+ I(c) / betaF;
+
+        // Emitter current follows from Kirchhoff's Current Law
+        // I_E = -(I_C + I_B)
+        I(e) <+ -(I(c) + I(b));
+    end
+endmodule
